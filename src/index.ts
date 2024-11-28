@@ -3,7 +3,11 @@ import * as rrweb from 'rrweb';
 import type { eventWithTime } from '@rrweb/types';
 import { recordOptions } from 'rrweb/typings/types';
 
+type ErrorType = 'error' | 'unhandledrejection' | 'resource';
+
 export interface CustomMonitorError {
+  type: ErrorType,
+
   error: Error;
   message?: string | Event;
   stack?: string;
@@ -104,6 +108,8 @@ export class Monitor {
   private initEvents() {
     window.onerror = (message, source, lineno, colno, error) => {
       error && this.recordErrorEvents({
+        type: 'error',
+
         message,
         source,
         lineno,
@@ -119,7 +125,9 @@ export class Monitor {
     window.addEventListener('error', (event) => {
       if (event.target && (event.target as any).src) {
         this.recordErrorEvents({
-          message: '资源加载错误',
+          type: 'resource',
+
+          message: '资源加载错误, 资源路劲: ' + (event.target as any).src,
           source: (event.target as any).src,
           error: event.error
         });
@@ -130,6 +138,8 @@ export class Monitor {
     // 监听promise错误
     window.addEventListener('unhandledrejection', (event) => {
       this.recordErrorEvents({
+        type: 'unhandledrejection',
+
         message: event.reason,
         error: event.reason
       });

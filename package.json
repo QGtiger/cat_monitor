@@ -1,13 +1,17 @@
 {
   "name": "@lightfish/monitor",
-  "version": "1.0.2.beta",
+  "version": "1.0.2-beta.3",
   "description": "",
-  "main": "src/index.ts",
-  "type": "module",
-  "typings": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w"
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +19,7 @@
   "devDependencies": {
     "@rrweb/types": "2.0.0-alpha.17",
     "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
     "typescript": "^5.2.2"
   },
   "dependencies": {
