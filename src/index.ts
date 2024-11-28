@@ -1,4 +1,5 @@
 import * as rrweb from 'rrweb';
+
 import type { eventWithTime } from '@rrweb/types';
 import { recordOptions } from 'rrweb/typings/types';
 
@@ -116,16 +117,15 @@ export class Monitor {
 
     // 监听资源加载错误
     window.addEventListener('error', (event) => {
-      this.recordErrorEvents({
-        message: event.message,
-        source: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        error: event.error
-      });
-      // 返回true，阻止默认行为
+      if (event.target && (event.target as any).src) {
+        this.recordErrorEvents({
+          message: '资源加载错误',
+          source: (event.target as any).src,
+          error: event.error
+        });
+      }
       return true
-    })
+    }, true)
 
     // 监听promise错误
     window.addEventListener('unhandledrejection', (event) => {
