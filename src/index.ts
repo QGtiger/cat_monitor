@@ -25,8 +25,11 @@ export interface MonitorOptions {
   onRecordErrorEvents?: (
     events: eventWithTime[],
     blob: Blob,
-    error: CustomMonitorError,
+    error: CustomMonitorError
   ) => void;
+
+  onRecordError?: (
+    error: CustomMonitorError) => void;
 
   /**
    * rrweb配置
@@ -84,8 +87,11 @@ export class Monitor {
   private recordErrorEvents(error: CustomMonitorError) {
     const { events, options: {
       onRecordErrorEvents,
-      deleyRecordTime
+      deleyRecordTime,
+      onRecordError
     } } = this
+
+    onRecordError && onRecordError(error);
 
     setTimeout(() => {
       const cloneEvents = events.slice();
