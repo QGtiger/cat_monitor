@@ -2,7 +2,6 @@ import * as rrweb from 'rrweb';
 
 import type { eventWithTime } from '@rrweb/types';
 import { recordOptions } from 'rrweb/typings/types';
-import { uploadFile } from './utils';
 
 type ErrorType = 'error' | 'unhandledrejection' | 'resource';
 
@@ -46,6 +45,8 @@ export interface MonitorOptions {
    * 原始window对象
    */
   rawWindow: Window;
+
+  uploadEventsFile?: (file: File) => Promise<string>
 }
 
 const defaultOptions: MonitorOptions = {
@@ -77,7 +78,6 @@ export class Monitor {
 
     rrweb.record({
       emit: (event, isCheckout) => {
-        console.log(event)
         if (isCheckout) {
           // 保留最近一分钟的数据
           eventsMatrix.splice(0, eventsMatrix.length - 1);
@@ -94,16 +94,20 @@ export class Monitor {
   async recordAndReport(cb: (previewUrl: string) => Promise<any>) {
     return new Promise(async (resolve, reject) => {
       const { options: {
-        deleyRecordTime
+        deleyRecordTime,
+        uploadEventsFile
       } } = this
       if (!cb) {
         return reject('cb is required') 
       }
+      if (!uploadEventsFile) {
+        return reject('uploadEventsFile is required')
+      }
       await new Promise((r) => setTimeout(r, deleyRecordTime));
       const blob = new Blob([JSON.stringify(this.getRecordEvents())], { type: 'application/json' });
-      const rrwebCdn = await uploadFile(new File([blob], `errorRecord-${Date.now()}.json`));
+      const rrwebCdn = await uploadEventsFile(new File([blob], `errorRecord-${Date.now()}.json`));
       const previewUrl = `https://qgtiger.github.io/rrweb-preview/?url=${rrwebCdn}`
-      
+
       cb(previewUrl).then(resolve).catch(reject);
     })
   }
