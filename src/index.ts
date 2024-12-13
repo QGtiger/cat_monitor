@@ -23,6 +23,11 @@ export interface MonitorOptions {
   recordTime: number;
 
   /**
+   * 保存切片数量
+   */
+  saveSliceConnt: number;
+
+  /**
    * 延迟记录时间
    */
   deleyRecordTime: number;
@@ -52,7 +57,8 @@ export interface MonitorOptions {
 const defaultOptions: MonitorOptions = {
   recordTime: 1000 * 10, // 默认记录10s
   deleyRecordTime: 2 * 1000, // 默认延迟2s
-  rawWindow: window
+  rawWindow: window,
+  saveSliceConnt: 1
 }
 
 export class Monitor {
@@ -73,14 +79,15 @@ export class Monitor {
   private readonly startRecord = () => {
     const { eventsMatrix, options: {
       recordTime,
-      rrwebRecordOptions
+      rrwebRecordOptions,
+      saveSliceConnt
     } } = this
 
     rrweb.record({
       emit: (event, isCheckout) => {
         if (isCheckout) {
-          // 保留最近一分钟的数据
-          eventsMatrix.splice(0, eventsMatrix.length - 1);
+          // 只保留最近的saveSliceConnt个切片
+          eventsMatrix.splice(0, eventsMatrix.length - saveSliceConnt);
           eventsMatrix.push([]);
         }
         const lastEvents = eventsMatrix[eventsMatrix.length - 1];
@@ -89,6 +96,7 @@ export class Monitor {
       ...rrwebRecordOptions,
       checkoutEveryNms: recordTime,
     })
+    
   }
 
   async recordAndReport(cb: (previewUrl: string) => Promise<any>) {
@@ -115,7 +123,7 @@ export class Monitor {
   getRecordEvents = () => {
     const { eventsMatrix } = this
     const len = eventsMatrix.length;
-    return (eventsMatrix[len - 2] || []).concat(eventsMatrix[len - 1]);
+    return eventsMatrix.flat()
   }
 
   private recordErrorEvents(error: CustomMonitorError) {
